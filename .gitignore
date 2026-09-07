@@ -1,0 +1,22 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Large model weights (use download_models.py instead)
+models/*.pt
+!models/.gitkeep
+
+# Captured incident snapshot photos
+incidents/*.jpg
+incidents/*.png
+!incidents/.gitkeep
+
+# Environments & IDEs
+.vscode/
+.idea/
+venv/
+env/
+.env
