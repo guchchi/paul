@@ -22,17 +22,24 @@ class HUDVisualizer:
     def draw_hud(
         self,
         frame: cv2.Mat,
-        system_state: str,
-        detections: List[Dict[str, Any]],
-        fps: float,
-        toggles: Dict[str, bool],
-        engine_mode: str = "HYBRID"
+        system_state: str = "SECURE",
+        detections: List[Dict[str, Any]] = None,
+        fps: float = 0.0,
+        toggles: Dict[str, bool] = None,
+        engine_mode: str = "HYBRID",
+        active_toggles: Dict[str, bool] = None,
+        **kwargs
     ) -> cv2.Mat:
         """
         Draws complete HUD overlay on frame.
         """
         if frame is None:
             return frame
+
+        if toggles is None:
+            toggles = active_toggles if active_toggles is not None else {}
+        if detections is None:
+            detections = []
             
         annotated = frame.copy()
         h, w = annotated.shape[:2]

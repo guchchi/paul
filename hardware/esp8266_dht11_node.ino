@@ -1,11 +1,11 @@
 /*
  * SIH 2026 - Smart Mine Safety & Subsidence Early-Warning System
  * Subsurface Robotic Rover / Edge Telemetry Node
- * Hardware: ESP8266 NodeMCU + DHT11 Environmental Sensor + MQ Gas Interface
+ * Hardware: ESP8266 NodeMCU + DHT11 Environmental Sensor
  * 
  * Features:
  * - Reads Temperature and Humidity from DHT11 on PIN D4 (GPIO 2)
- * - Reads Analog Gas levels on A0
+ * - Dedicated DHT11 mode (Gas sensor A0 is optional / unequipped)
  * - Connects to Mine Gateway Wi-Fi (or creates local Access Point)
  * - Serves JSON telemetry endpoint at: http://<IP_ADDRESS>/data
  */
@@ -19,11 +19,11 @@ const char* ssid = "MineGateway_AP";
 const char* password = "minesafety2026";
 
 // DHT11 Sensor Setup
-#define DHTPIN D4     // GPIO 2
+#define DHTPIN D4     // GPIO 2 (or D2 / GPIO 4 depending on board pinout)
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
 
-// Gas Sensor Pin (Analog)
+// Gas Sensor Pin (Analog - Optional/Expansion only)
 #define GAS_PIN A0
 
 // Local Web Server on Port 80

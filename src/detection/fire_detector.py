@@ -133,3 +133,40 @@ class FireDetector:
         self.current_fps = round(1.0 / elapsed, 1) if elapsed > 0 else 30.0
         
         return system_state, validated_detections, self.current_fps
+
+    def detect(self, frame: cv2.Mat) -> Tuple[cv2.Mat, List[Dict[str, Any]], str]:
+        """
+        High-level detection API used by the dashboard.
+        Processes the frame, draws bounding boxes, and returns:
+            (annotated_frame, detections_list, system_state)
+        """
+        system_state, detections, _ = self.process_frame(frame)
+
+        annotated = frame.copy()
+
+        # Color map for detection labels
+        color_map = {
+            "fire":  (0, 0, 255),    # Red (BGR)
+            "smoke": (200, 200, 0),  # Cyan-ish (BGR)
+        }
+
+        for det in detections:
+            box = det.get("box")
+            if not box:
+                continue
+            x, y, w, h = box
+            label = det.get("label", "fire")
+            conf = det.get("confidence", 0.0)
+            color = color_map.get(label, (0, 255, 255))
+
+            # Bounding box
+            cv2.rectangle(annotated, (x, y), (x + w, y + h), color, 2)
+
+            # Label background + text
+            text = f"{label.upper()} {conf:.0%}"
+            (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+            cv2.rectangle(annotated, (x, y - th - 6), (x + tw + 4, y), color, -1)
+            cv2.putText(annotated, text, (x + 2, y - 4),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+
+        return annotated, detections, system_state

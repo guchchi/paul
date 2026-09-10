@@ -76,6 +76,13 @@ class AlertManager:
             self.last_snapshot_time = current_time
             self._save_incident_snapshot(frame, primary_threat, max_conf)
 
+    def trigger(self, hazard_type: str = "fire", conf: float = 0.0, frame: cv2.Mat = None):
+        """Dashboard compatibility method for triggering alarms."""
+        if frame is None:
+            return
+        detections = [{"label": hazard_type, "confidence": conf, "box": (0, 0, 10, 10)}]
+        self.trigger_alert(frame, detections, "ALARM")
+
     def _alert_worker(self):
         """Background worker thread to handle sound and speech without blocking video FPS."""
         # Initialize pyttsx3 engine safely inside worker

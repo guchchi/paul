@@ -24,7 +24,7 @@ This project delivers a **low-cost, real-time, indigenous mine safety command sy
 ```
                         ┌─────────────────────────────────────────────────┐
                         │      🔐 DGMS INDUSTRIAL SCADA LOGIN GATEWAY      │
-                        │       (Operator Auth / 1-Click Evaluator Demo)   │
+                        │                 (Operator Auth)                 │
                         └────────────────────────┬────────────────────────┘
                                                  │
                      ┌───────────────────────────┴───────────────────────────┐
@@ -94,9 +94,8 @@ streamlit run app_dashboard.py
 *Tip: Once the browser opens, press **`F11`** for Fullscreen Mode to give judges the complete industrial control-room feel!*
 
 ### 3. Login to the Terminal
-- **Operator ID**: `MSO-ZONE4-INCHARGE`
+- **Operator ID**: `MSO-ZONE4-INCHARGE` (or `operator_01`)
 - **Security Key**: `sih2026`
-- *Or simply click:* **⚡ Quick Demo Access (1-Click for Evaluators)**
 
 ---
 
