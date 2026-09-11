@@ -46,5 +46,12 @@ class AppConfig:
     serial_port: str = ""                # e.g., "COM3" for Arduino/Relay
     serial_baud: int = 9600
 
+    # Ground Scanner & Adaptive Mesh Settings
+    danger_risk_threshold: float = 68.0  # DGMS critical danger threshold (%)
+    advisory_risk_threshold: float = 38.0  # DGMS advisory strain threshold (%)
+    max_dynamic_nodes: int = 8           # Maximum auxiliary sensor nodes
+    auto_deploy_nodes_on_danger: bool = True
+    scan_interval_sec: float = 5.0
+
 # Global active configuration instance
 config = AppConfig()
