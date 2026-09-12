@@ -26,6 +26,8 @@ from src.utils.visualizer import hud_visualizer
 from src.telemetry.rover_telemetry import rover_telemetry
 from src.telemetry.subsidence_telemetry import subsidence_mesh
 from src.telemetry.ground_scanner import ground_scanner
+from src.telemetry.project_manager import project_manager
+from src.detection.zone_classifier import zone_classifier
 
 # -------------------------------------------------------------
 # Streamlit Page Setup
@@ -1503,351 +1505,233 @@ def render_module3_subsidence():
 # -------------------------------------------------------------
 def render_module4_ground_scanner():
     render_header()
-    scan_data = ground_scanner.get_scanner_data()
     
-    # ── Top Title & Badge Banner ──
+    # Initialize session state for navigation within Module 4
+    if "mod4_view" not in st.session_state:
+        st.session_state["mod4_view"] = "HUB" # HUB, ADD_MINE, MINE_OVERVIEW, SCANNER
+    if "selected_project_id" not in st.session_state:
+        st.session_state["selected_project_id"] = None
+    if "selected_zone_id" not in st.session_state:
+        st.session_state["selected_zone_id"] = None
+
+    # View Router
+    view = st.session_state["mod4_view"]
+    
+    if view == "HUB":
+        render_mod4_hub()
+    elif view == "ADD_MINE":
+        render_mod4_add_mine()
+    elif view == "MINE_OVERVIEW":
+        render_mod4_mine_overview()
+    elif view == "SCANNER":
+        render_mod4_scanner()
+
+def render_mod4_hub():
     st.markdown("""
-    <div style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; border:2.5px solid #000000; border-radius:14px; padding:0.8rem 1.2rem; margin-bottom:0.9rem; box-shadow:4px 4px 0px #000000;">
-        <div style="display:flex; align-items:center; gap:0.85rem;">
-            <div style="width:44px; height:44px; border-radius:12px; background:#fdba74; border:2.5px solid #000000; box-shadow:2.5px 2.5px 0px #000000; display:flex; align-items:center; justify-content:center; font-size:1.3rem;">🗺️</div>
-            <div>
-                <div style="font-size:1.1rem; font-weight:900; color:#000000; letter-spacing:-0.02em;">Module 04 &middot; Wide Area Camera / Satellite Scanner &amp; Closed-Loop Mesh</div>
-                <div style="font-size:0.76rem; font-weight:700; color:#4b5563;">Wide Area Surveillance ➔ Zone Detection (Safe/Moderate/Danger) ➔ 4-Sensor Telemetry ➔ Anomaly Analysis ➔ Closed-Loop Densification ↺</div>
-            </div>
-        </div>
-        <div style="display:flex; align-items:center; gap:0.5rem;">
-            <span style="font-size:0.72rem; font-weight:900; color:#000000; background:#fdba74; border:2px solid #000000; border-radius:8px; padding:0.25rem 0.55rem; box-shadow:2px 2px 0px #000000;">SATELLITE InSAR</span>
-            <span style="font-size:0.72rem; font-weight:900; color:#000000; background:#fde047; border:2px solid #000000; border-radius:8px; padding:0.25rem 0.55rem; box-shadow:2px 2px 0px #000000;">CLOSED-LOOP FEEDBACK</span>
-        </div>
+    <div style="background:#ffffff; border:2.5px solid #000000; border-radius:14px; padding:1.2rem; margin-bottom:1.5rem; box-shadow:4px 4px 0px #000000;">
+        <div style="font-size:1.4rem; font-weight:900; letter-spacing:-0.03em;">Module 04 &middot; AI-Driven Mine Zone Analysis 🗺️</div>
+        <div style="font-size:0.85rem; font-weight:600; color:#4b5563; margin-top:0.3rem;">Manage large mine concession areas, auto-distribute into sub-zones, and run AI/ML vision classification on uploaded aerial imagery.</div>
     </div>
     """, unsafe_allow_html=True)
-
-    # ── Flowchart Pipeline Stage Ribbon (Direct Architectural Flowchart Representation) ──
-    stages = [
-        ("1. Wide Area", "🛰️", "Camera / Satellite Simulation"),
-        ("2. Zone Detect", "🗺️", "Safe / Moderate / Danger"),
-        ("3. Sensor Mesh", "📡", "Few / More / Dense Nodes"),
-        ("4. Real-Time", "📈", "Tilt / Disp / Vib / Crack"),
-        ("5. Anomaly", "🔍", "Rate Spikes & Rupture"),
-        ("6. Risk Score", "⚖️", "0 - 100% Composite"),
-        ("7. Alert", "🚨", "Siren & Voice Alarm"),
-        ("8. Loop Update ↺", "🔄", "Risk Zone Updated")
-    ]
-    ribbon_items = []
-    for i, (name, icon, sub) in enumerate(stages):
-        is_curr = (i == ground_scanner.current_stage_idx)
-        bg = "#fef08a" if is_curr else "#f8fafc"
-        border = "2.5px solid #000" if is_curr else "1.5px solid #cbd5e1"
-        shadow = "2px 2px 0px #000" if is_curr else "none"
-        ribbon_items.append(
-            f'<div style="flex:1; text-align:center; padding:0.35rem 0.4rem; background:{bg}; border:{border}; border-radius:8px; box-shadow:{shadow};">'
-            f'<div style="font-size:0.95rem;">{icon}</div>'
-            f'<div style="font-size:0.68rem; font-weight:900; color:#000000; margin-top:2px; white-space:nowrap;">{name}</div>'
-            f'<div style="font-size:0.58rem; font-weight:700; color:#6b7280; white-space:nowrap;">{sub}</div>'
-            f'</div>'
-        )
-        if i < len(stages) - 1:
-            ribbon_items.append('<div style="font-size:0.85rem; font-weight:900; color:#000000;">➔</div>')
-
-    ribbon_html = (
-        '<div style="background:#ffffff; border:2.5px solid #000000; border-radius:12px; padding:0.6rem 0.8rem; margin-bottom:1.0rem; box-shadow:3px 3px 0px #000000; overflow-x:auto;">'
-        '<div style="display:flex; align-items:center; justify-content:space-between; gap:0.35rem; min-width:820px;">'
-        + "".join(ribbon_items)
-        + '</div></div>'
-    )
-    st.markdown(ribbon_html, unsafe_allow_html=True)
-
-    # ── Interactive Closed-Loop Simulation Toolbar ──
-    with st.container(border=True):
-        st.markdown("<div style='font-size:0.75rem; font-weight:900; text-transform:uppercase; margin-bottom:0.4rem;'>🕹️ Closed-Loop Simulation &amp; Hazard Injection Console</div>", unsafe_allow_html=True)
-        tb_c1, tb_c2, tb_c3, tb_c4, tb_c5 = st.columns([1.2, 1.3, 1.3, 1.3, 1.0], vertical_alignment="center")
+    
+    projects = project_manager.get_all_projects()
+    
+    col_l, col_r = st.columns([1, 4])
+    with col_l:
+        if st.button("➕ Add New Mine Project", use_container_width=True, type="primary"):
+            st.session_state["mod4_view"] = "ADD_MINE"
+            st.rerun()
         
-        with tb_c1:
-            if st.button("🟢 Safe Baseline", key="scen_baseline_btn", use_container_width=True, help="All sectors stable within statutory DGMS limits (Few Nodes)."):
-                ground_scanner.set_scenario("NORMAL")
-                st.toast("✅ Restored Safe Strata Baseline (All Sectors Secure)", icon="🟢")
-                st.rerun()
-
-        with tb_c2:
-            if st.button("🟡 Inject Fissure Strain", key="scen_moderate_btn", use_container_width=True, help="Triggers tensile crack widening (4.8mm) in Zone-B. Transitions to Moderate (More Nodes)."):
-                ground_scanner.set_scenario("MODERATE_STRAIN")
-                st.toast("⚠️ Tensile Fissures Active in Zone-B! More Nodes Provisioned.", icon="🟡")
-                st.rerun()
-
-        with tb_c3:
-            if st.button("🔴 Inject Void Rupture", key="scen_danger_btn", use_container_width=True, help="Triggers deep extraction cavity collapse in Zone-A (Sag: 148mm, Tilt: 12.5mm/m, Crack: 8.6mm). Triggers Evacuation Siren & Dense Nodes!"):
-                ground_scanner.set_scenario("CRITICAL_SUBSIDENCE")
-                st.toast("🚨 Critical Rupture Hazard in Zone-A! Dense Micro-Mesh Activated.", icon="🔴")
-                st.rerun()
-
-        with tb_c4:
-            if st.button("⚡ Auto-Deploy Nodes", key="btn_auto_deploy_nodes", use_container_width=True, help="Dynamically densifies danger zones with secondary micro-nodes to eliminate blind spots."):
-                n_count, n_ids = ground_scanner.auto_deploy_danger_nodes()
-                st.toast(f"⚡ Deployed {n_count} Dense Micro-Nodes into High-Risk Zones!", icon="📡")
-                st.rerun()
-
-        with tb_c5:
-            if st.button("🔄 Reset", key="btn_reset_scanner_mesh", use_container_width=True, help="Restores mesh back to statutory 4 baseline inclinometers."):
-                ground_scanner.reset_to_baseline()
-                st.toast("Reset to 4 statutory baseline nodes.", icon="🔄")
-                st.rerun()
-
-    # Re-fetch data after any user button action
-    scan_data = ground_scanner.get_scanner_data()
-
-    # ── Dynamic Multi-Tier Alert Banner & Audio Action ──
-    b_col1, b_col2 = st.columns([4.0, 1.2], vertical_alignment="center")
-    with b_col1:
-        if scan_data["danger_zones_count"] > 0:
-            st.error(f"🚨 **{scan_data['global_status']}**: Sector **{scan_data['highest_risk_zone']}** exhibits **{scan_data['highest_risk_score']}% Composite Risk** with active tensile fissures and rapid displacement! Recommended: Evacuate surface infrastructure and activate high-density micro-mesh.")
-        elif scan_data["moderate_zones_count"] > 0:
-            st.warning(f"▲ **{scan_data['global_status']}**: Secondary shear movement registered in Sector **{scan_data['highest_risk_zone']}** ({scan_data['highest_risk_score']}% Risk). Additional sentry nodes dispatched.")
-        else:
-            st.success(f"● **{scan_data['global_status']}**: Geotechnical tilt, sag, vibration, and fissure apertures across all sectors comply with DGMS CMR 2017 standards.")
-
-    with b_col2:
-        if st.button("🔊 Sound Evac Alarm", key="btn_sound_geotech_alarm", use_container_width=True):
-            alert_manager.trigger_geotechnical_alarm(scan_data["highest_risk_zone"], scan_data["highest_risk_score"])
-            st.toast(f"🚨 Siren & Voice Evacuation Broadcast Sent for {scan_data['highest_risk_zone']}!", icon="📢")
-
-    st.markdown("<div style='height:0.3rem'></div>", unsafe_allow_html=True)
-
-    # ── Top 4 KPI Metrics ──
-    k1, k2, k3, k4 = st.columns(4)
-    with k1:
-        risk_color = "#ff4d4d" if scan_data["danger_zones_count"] > 0 else ("#fde047" if scan_data["moderate_zones_count"] > 0 else "#4ade80")
-        st.markdown(render_neo_metric("Highest Risk Sector", f"{scan_data['highest_risk_zone']} ({scan_data['highest_risk_score']}%)", "Composite 4-sensor geotechnical strain", "⚠️", "#ffffff", "RISK", risk_color), unsafe_allow_html=True)
-    with k2:
-        z_badge = "DANGER" if scan_data['danger_zones_count']>0 else ("MODERATE" if scan_data['moderate_zones_count']>0 else "ALL SAFE")
-        z_badge_col = "#ff4d4d" if scan_data['danger_zones_count']>0 else ("#fde047" if scan_data['moderate_zones_count']>0 else "#4ade80")
-        st.markdown(render_neo_metric("Zone Separation", f"{scan_data['danger_zones_count']}D · {scan_data['moderate_zones_count']}M · {scan_data['safe_zones_count']}S", "Safe (Few) · Mod (More) · Danger (Dense)", "🗺️", "#ffffff", z_badge, z_badge_col), unsafe_allow_html=True)
-    with k3:
-        st.markdown(render_neo_metric("Active Mesh Nodes", f"{scan_data['total_nodes']} Nodes", f"Statutory: {scan_data['base_nodes_count']} | Adaptive: {scan_data['dynamic_nodes_count']}", "📡", "#ffffff", "DENSIFIED" if scan_data['dynamic_nodes_count']>0 else "BASELINE", "#fb923c" if scan_data['dynamic_nodes_count']>0 else "#e2e8f0"), unsafe_allow_html=True)
-    with k4:
-        st.markdown(render_neo_metric("Early-Warning Lead Time", f"{scan_data['lead_time_mins']} Mins", f"Mesh Coverage: {scan_data['mesh_coverage_pct']}% | Blind spots closed", "⏱️", "#ffffff", "+48M BOOST" if scan_data['dynamic_nodes_count']>0 else "STANDARD", "#4ade80" if scan_data['dynamic_nodes_count']>0 else "#e2e8f0"), unsafe_allow_html=True)
-
-    st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-
-    # ── Main 2-Column Command Workspace ──
-    col_map, col_sectors = st.columns([1.35, 1.0])
-
-    with col_map:
-        with st.container(border=True):
-            v_head_col, v_sel_col = st.columns([1.2, 1.8], vertical_alignment="center")
-            with v_head_col:
-                st.markdown("<div style='font-size:0.95rem; font-weight:900;'>Wide-Area Remote Sensing</div>", unsafe_allow_html=True)
-            with v_sel_col:
-                view_mode = st.radio(
-                    "Select Remote Sensing Feed",
-                    options=["🛰️ Satellite InSAR Fringes", "📷 Aerial Camera Feed", "🗺️ 2D Subsidence Contour"],
-                    horizontal=True,
-                    label_visibility="collapsed",
-                    key="scanner_view_mode_select"
-                )
-
-            # Generate and render the selected wide-area perspective
-            if "InSAR" in view_mode:
-                st.caption("Satellite Differential InSAR (Phase Wrapped Interferogram): Each 2π fringe cycle represents 2.80 cm ground subsidence.")
-                insar_bytes = ground_scanner.generate_insar_fringe_view()
-                st.image(insar_bytes, use_container_width=True)
-            elif "Aerial" in view_mode:
-                st.caption("High-Altitude Multi-Spectral Optical Feed: Autonomous aerial/drone concession scan with telemetric HUD crosshairs.")
-                sat_bytes = ground_scanner.generate_satellite_simulation_view()
-                st.image(sat_bytes, use_container_width=True)
-            else:
-                st.caption("2D Geotechnical Ground Settlement Field S(x, y) overlaid with active permanent inclinometers & adaptive micro-nodes.")
-                map_bytes = ground_scanner.generate_spatial_risk_map()
-                st.image(map_bytes, use_container_width=True)
-
-            # Map Legend & Specs
-            st.markdown("""
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1.5px solid #000; border-radius:8px; padding:0.4rem 0.75rem; margin-top:0.4rem; font-size:0.72rem; font-weight:800;">
-                <div style="display:flex; align-items:center; gap:0.5rem;">
-                    <span style="color:#2563eb; font-size:0.95rem;">♦</span>
-                    <span>Statutory Baseline Nodes (Sparse: 1 per 60m)</span>
-                </div>
-                <div style="display:flex; align-items:center; gap:0.5rem;">
-                    <span style="color:#dc2626; font-size:1.0rem;">★</span>
-                    <span>Adaptive Micro-Mesh Nodes (Dense: 1 per 18m)</span>
-                </div>
-                <div style="color:#4b5563;">
-                    Grid: 300m &times; 200m &middot; DGMS Grid
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-    with col_sectors:
-        with st.container(border=True):
-            st.markdown("<div style='font-size:0.95rem; font-weight:900; margin-bottom:0.2rem;'>Zone Detection &amp; Densification Status</div>", unsafe_allow_html=True)
-            st.caption("3 Tiers: SAFE (Few Nodes) | MODERATE (More Nodes) | DANGER (Dense Nodes)")
-
-            for zid, zdata in scan_data["zones"].items():
-                r_level = zdata["risk_level"]
-                if r_level == "DANGER":
-                    b_edge = "#b91c1c"
-                    b_bg = "#fecaca"
-                    badge_title = "DANGER (Dense Nodes)"
-                elif r_level == "MODERATE":
-                    b_edge = "#d97706"
-                    b_bg = "#fef3c7"
-                    badge_title = "MODERATE (More Nodes)"
+    st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
+    
+    if not projects:
+        st.info("No mine projects found. Please add a new mine.")
+        return
+        
+    st.write("### Active Mine Projects")
+    cols = st.columns(3)
+    for i, proj in enumerate(projects):
+        with cols[i % 3]:
+            with st.container(border=True):
+                st.markdown(f"**{proj['name']}**")
+                st.caption(f"Area: {proj['width_m']}m x {proj['height_m']}m")
+                st.caption(f"Zones: {len(proj['zones'])}")
+                
+                # Calculate overall risk based on zones
+                danger_count = sum(1 for z in proj['zones'] if z['status'] == 'DANGER')
+                mod_count = sum(1 for z in proj['zones'] if z['status'] == 'MODERATE')
+                
+                if danger_count > 0:
+                    st.error(f"⚠️ {danger_count} Zones in DANGER")
+                elif mod_count > 0:
+                    st.warning(f"▲ {mod_count} Zones in MODERATE")
                 else:
-                    b_edge = "#15803d"
-                    b_bg = "#dcfce7"
-                    badge_title = "SAFE (Few Nodes)"
+                    st.success("🟢 Zones Scanned / Stable")
+                    
+                if st.button(f"Open {proj['name']}", key=f"open_proj_{proj['project_id']}", use_container_width=True):
+                    st.session_state["selected_project_id"] = proj['project_id']
+                    st.session_state["mod4_view"] = "MINE_OVERVIEW"
+                    st.rerun()
 
-                # Anomaly tag badges
-                anom_badges = "".join([
-                    f"<span style='background:#fee2e2; color:#991b1b; border:1px solid #b91c1c; border-radius:4px; font-size:0.62rem; font-weight:900; padding:0.08rem 0.35rem; margin-right:4px;'>⚠️ {a.replace('_', ' ')}</span>"
-                    for a in zdata.get("active_anomalies", [])
-                ]) if zdata.get("active_anomalies") else "<span style='color:#16a34a; font-size:0.68rem; font-weight:800;'>✓ No Active Anomalies</span>"
-
-                crack_col = '#dc2626' if zdata['crack_mm'] > 3.0 else '#000000'
-                dens_col = '#dc2626' if zdata['node_count'] < zdata['recommended_nodes'] else '#16a34a'
-                dens_msg = '⚠️ Deficit: Add Nodes' if zdata['node_count'] < zdata['recommended_nodes'] else '✓ Target Saturated'
-
-                card_html = (
-                    f'<div style="background:#ffffff; border:2.5px solid {b_edge}; border-radius:12px; padding:0.65rem 0.85rem; margin-bottom:0.6rem; box-shadow:2.5px 2.5px 0px #000000;">'
-                    f'<div style="display:flex; justify-content:space-between; align-items:center;">'
-                    f'<span style="font-size:0.86rem; font-weight:900; color:#000000;">{zdata["zone_id"]}: {zdata["name"]}</span>'
-                    f'<span style="background:{b_bg}; border:1.5px solid #000; border-radius:6px; padding:0.12rem 0.45rem; font-size:0.66rem; font-weight:900; color:#000;">{badge_title} &middot; {zdata["risk_score"]}%</span>'
-                    f'</div>'
-                    f'<div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:0.35rem; margin:0.45rem 0; font-size:0.72rem; font-weight:800; background:#f8fafc; border:1.5px solid #000; border-radius:6px; padding:0.35rem 0.5rem;">'
-                    f'<div><span style="color:#64748b; display:block; font-size:0.60rem;">TILT</span><b>{zdata["avg_tilt_mm_m"]} mm/m</b></div>'
-                    f'<div><span style="color:#64748b; display:block; font-size:0.60rem;">SAG (S)</span><b>{zdata["max_settlement_mm"]} mm</b></div>'
-                    f'<div><span style="color:#64748b; display:block; font-size:0.60rem;">TREMOR</span><b>{zdata["vibration_g"]} g</b></div>'
-                    f'<div><span style="color:#64748b; display:block; font-size:0.60rem;">CRACK</span><b style="color:{crack_col};">{zdata["crack_mm"]} mm</b></div>'
-                    f'</div>'
-                    f'<div style="margin-bottom:0.35rem;">{anom_badges}</div>'
-                    f'<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.72rem; color:#4b5563; font-weight:800;">'
-                    f'<span>Allocated Nodes: <b>{zdata["node_count"]}</b> (Target: <b>{zdata["recommended_nodes"]}</b>)</span>'
-                    f'<span style="color:{dens_col}; font-weight:900;">{dens_msg}</span>'
-                    f'</div>'
-                    f'</div>'
-                )
-                st.markdown(card_html, unsafe_allow_html=True)
-
-                # Manual deployment button per zone
-                _, b_col = st.columns([2.8, 1.2])
-                with b_col:
-                    if st.button(f"+ Add Node", key=f"btn_add_node_{zid}", use_container_width=True):
-                        new_node_id = ground_scanner.deploy_manual_node(zid, "CRACK_METER")
-                        st.toast(f"✅ Sentry Node {new_node_id} deployed into {zid}!", icon="📍")
-                        st.rerun()
-
-    st.markdown("<div style='height:0.6rem'></div>", unsafe_allow_html=True)
-
-    # ── Sensor Network & Real-Time Data (4 Sensors: Tilt, Displacement, Vibration, Crack) ──
-    with st.container(border=True):
-        st.markdown("<div style='font-size:1.0rem; font-weight:900;'>Sensor Network &amp; 4-Parameter Real-Time Telemetry Stream</div>", unsafe_allow_html=True)
-        st.caption("Live streaming 4-sensor arrays: Inclinometer Tilt (mm/m), Settlement Sag (mm), Micro-Seismic Vibration (g), and Surface Crack Meter (mm).")
-
-        all_node_ids = [n["node_id"] for n in scan_data["nodes"]]
-        sel_node_id = st.selectbox(
-            "Select Sensor Node for Real-Time Telemetry Inspection",
-            options=all_node_ids,
-            format_func=lambda nid: f"{nid} - {next((n['name'] for n in scan_data['nodes'] if n['node_id']==nid), nid)} ({next((n['zone_id'] for n in scan_data['nodes'] if n['node_id']==nid), '')})",
-            key="scanner_node_inspect_select"
-        )
-        sel_node = next((n for n in scan_data["nodes"] if n["node_id"] == sel_node_id), scan_data["nodes"][0])
-
-        # 4 Mini Metric Cards for Selected Node
-        n_m1, n_m2, n_m3, n_m4 = st.columns(4)
-        with n_m1:
-            st.markdown(render_neo_metric("Inclinometer Tilt", f"{sel_node['tilt_mm_m']} mm/m", "Limit: 8.0 mm/m (DGMS)", "📐", "#ffffff", "TILT", "#e0f2fe"), unsafe_allow_html=True)
-        with n_m2:
-            st.markdown(render_neo_metric("Settlement Sag", f"{sel_node['settlement_mm']} mm", "Limit: 80.0 mm (CMR)", "📉", "#ffffff", "DISP", "#fef3c7"), unsafe_allow_html=True)
-        with n_m3:
-            st.markdown(render_neo_metric("Micro-Tremor", f"{sel_node['vibration_g']} g", "Limit: 0.25 g", "📳", "#ffffff", "VIB", "#dcfce7"), unsafe_allow_html=True)
-        with n_m4:
-            crack_bg = "#fee2e2" if sel_node['crack_mm'] >= 4.0 else "#f4f4f5"
-            st.markdown(render_neo_metric("Crack Aperture", f"{sel_node['crack_mm']} mm", f"Rate: {sel_node['crack_rate_mm_min']} mm/min", "⚡", "#ffffff", "CRACK", crack_bg), unsafe_allow_html=True)
-
-        # Real-time multi-metric line chart
-        if len(sel_node.get("history_tilt", [])) > 0:
-            df_hist = pd.DataFrame({
-                "Tilt (mm/m)": sel_node["history_tilt"],
-                "Displacement (mm)": sel_node["history_disp"],
-                "Tremor (g x100)": [v * 100.0 for v in sel_node["history_vib"]],
-                "Crack Aperture (mm)": sel_node["history_crack"]
-            })
-            st.markdown("<div style='font-size:0.75rem; font-weight:800; color:#4b5563; margin-top:0.4rem; margin-bottom:0.2rem;'>LIVE ROLLING TIME-SERIES (LAST 30 DATA PACKETS &bull; 5 HZ TELEMETRY STREAM)</div>", unsafe_allow_html=True)
-            st.line_chart(df_hist, use_container_width=True, height=220)
-
-    st.markdown("<div style='height:0.6rem'></div>", unsafe_allow_html=True)
-
-    # ── Detailed Inspector Tabs ──
-    tab_nodes, tab_standards, tab_audit = st.tabs([
-        "📡 Active Sensor Node Roster",
-        "📋 DGMS Strata Guidelines & Anomaly Rules",
-        "📜 Closed-Loop Dispatch & Audit Trail"
-    ])
-
-    with tab_nodes:
-        with st.container(border=True):
-            st.write("**Current Active Geotechnical Sensor Node Roster**")
-            st.caption("Live parameters transmitted from base statutory inclinometers and dynamically provisioned danger-zone micro-nodes.")
+def render_mod4_add_mine():
+    st.button("⬅ Back to Hub", on_click=lambda: st.session_state.update({"mod4_view": "HUB"}))
+    st.markdown("### Add New Mine Project")
+    
+    with st.form("add_mine_form"):
+        name = st.text_input("Mine/Project Name", "New Coalfield Block")
+        col1, col2 = st.columns(2)
+        with col1:
+            width = st.number_input("Concession Width (meters)", min_value=100, max_value=10000, value=1200)
+        with col2:
+            height = st.number_input("Concession Height (meters)", min_value=100, max_value=10000, value=1200)
             
-            nodes_list = scan_data["nodes"]
-            if nodes_list:
-                df_nodes = pd.DataFrame(nodes_list)
-                df_nodes = df_nodes[[
-                    "node_id", "name", "zone_id", "node_type", "is_dynamic",
-                    "x", "y", "tilt_mm_m", "settlement_mm", "vibration_g", "crack_mm",
-                    "battery_pct", "rssi_dbm", "status", "deployed_at"
-                ]]
-                df_nodes.columns = [
-                    "Node ID", "Sensor Tag", "Sector", "Type", "Dynamic?",
-                    "X (m)", "Y (m)", "Tilt (mm/m)", "Subsidence (mm)", "Tremor (g)", "Crack (mm)",
-                    "Battery (%)", "RSSI (dBm)", "Status", "Deployment"
-                ]
-                st.dataframe(df_nodes, use_container_width=True, hide_index=True)
+        st.info("💡 The system will automatically distribute this large area into manageable ~400x400m sub-zones for targeted AI scanning.")
+        
+        if st.form_submit_button("Generate Zones & Create Project", type="primary", use_container_width=True):
+            pid = project_manager.add_mine_project(name, width, height)
+            st.session_state["selected_project_id"] = pid
+            st.session_state["mod4_view"] = "MINE_OVERVIEW"
+            st.toast(f"✅ Mine '{name}' created and distributed into zones!")
+            st.rerun()
+
+def render_mod4_mine_overview():
+    st.button("⬅ Back to Hub", on_click=lambda: st.session_state.update({"mod4_view": "HUB"}))
+    
+    proj_id = st.session_state.get("selected_project_id")
+    proj = project_manager.get_project(proj_id)
+    if not proj:
+        st.error("Project not found.")
+        return
+        
+    st.markdown(f"### {proj['name']} - Zone Overview")
+    st.caption(f"Area: {proj['width_m']}m x {proj['height_m']}m | Grid: {proj['grid_rows']}x{proj['grid_cols']}")
+    
+    # Render Grid visually
+    rows = proj['grid_rows']
+    cols = proj['grid_cols']
+    
+    for r in range(rows):
+        st_cols = st.columns(cols)
+        for c in range(cols):
+            # Find zone
+            zone = next((z for z in proj['zones'] if z['row'] == r and z['col'] == c), None)
+            if zone:
+                with st_cols[c]:
+                    bg_col = "#ffffff"
+                    if zone['status'] == 'DANGER':
+                        bg_col = "#fee2e2"
+                        border = "#dc2626"
+                        emoji = "🔴"
+                    elif zone['status'] == 'MODERATE':
+                        bg_col = "#fef3c7"
+                        border = "#d97706"
+                        emoji = "🟡"
+                    elif zone['status'] == 'SAFE':
+                        bg_col = "#dcfce7"
+                        border = "#16a34a"
+                        emoji = "🟢"
+                    else:
+                        bg_col = "#f8fafc"
+                        border = "#94a3b8"
+                        emoji = "⚪"
+                        
+                    card_html = f"""
+                    <div style="background:{bg_col}; border:2.5px solid {border}; border-radius:12px; padding:1.2rem; margin-bottom:0.5rem; text-align:center; box-shadow:3px 3px 0px {border};">
+                        <h2 style="margin:0; padding:0; color:{border};">{zone['zone_id']}</h2>
+                        <div style="font-size:0.9rem; font-weight:800; margin-top:0.4rem;">{emoji} {zone['status']}</div>
+                        <div style="font-size:0.75rem; font-weight:bold; color:#4b5563; margin-top:6px;">Risk: {zone['risk_score']}%</div>
+                    </div>
+                    """
+                    st.markdown(card_html, unsafe_allow_html=True)
+                    if st.button(f"Scan Image &rarr;", key=f"btn_scan_{zone['zone_id']}", use_container_width=True):
+                        st.session_state["selected_zone_id"] = zone['zone_id']
+                        st.session_state["mod4_view"] = "SCANNER"
+                        st.rerun()
+                        
+def render_mod4_scanner():
+    st.button("⬅ Back to Zone Overview", on_click=lambda: st.session_state.update({"mod4_view": "MINE_OVERVIEW"}))
+    
+    proj_id = st.session_state.get("selected_project_id")
+    zone_id = st.session_state.get("selected_zone_id")
+    
+    proj = project_manager.get_project(proj_id)
+    zone = next((z for z in proj['zones'] if z['zone_id'] == zone_id), None)
+    
+    st.markdown(f"### AI Vision Scanner &middot; Zone {zone_id}")
+    st.caption("Upload High-Resolution Optical/Satellite imagery for AI-driven anomaly and fissure detection.")
+    
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.write("**1. Upload Zone Imagery**")
+        uploaded_file = st.file_uploader("Upload Drone/Camera/Satellite Image (JPG/PNG)", type=["jpg", "jpeg", "png"])
+        
+        if uploaded_file is not None:
+            image_bytes = uploaded_file.getvalue()
+            st.image(image_bytes, caption="Original Uploaded Feed", use_container_width=True)
+            
+            if st.button("🧠 Run AI Analysis Model", type="primary", use_container_width=True):
+                with st.spinner("AI Model analyzing structural integrity and edge density..."):
+                    import time
+                    time.sleep(1.5) # Simulate heavy processing
+                    
+                    try:
+                        results = zone_classifier.analyze_image(image_bytes)
+                        st.session_state[f"scan_res_{zone_id}"] = results
+                        project_manager.update_zone_status(
+                            proj_id, zone_id, 
+                            results["rating"], 
+                            results["risk_score"], 
+                            results["anomalies"]
+                        )
+                        st.toast("✅ AI Analysis Complete!")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Image Processing Error: {e}")
+                        
+    with col2:
+        st.write("**2. AI Analysis Results**")
+        res = st.session_state.get(f"scan_res_{zone_id}")
+        
+        if res:
+            st.image(res["annotated_image_bytes"], caption="AI Annotated Feed (Fissure Tracking)", use_container_width=True)
+            
+            rating = res["rating"]
+            if rating == 'DANGER':
+                bg = "#fecaca"
+                br = "#b91c1c"
+            elif rating == 'MODERATE':
+                bg = "#fef3c7"
+                br = "#d97706"
             else:
-                st.caption("No nodes active.")
-
-    with tab_standards:
-        st.markdown("""
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem;">
-            <div style="background:#ffffff; border:2.5px solid #000; border-radius:12px; padding:1.0rem; box-shadow:3.5px 3.5px 0px #000;">
-                <div style="font-size:0.95rem; font-weight:900; color:#000;">
-                    🛡️ DGMS Statutory Strata Management Plan (SMP)
+                bg = "#dcfce7"
+                br = "#15803d"
+                
+            res_html = f"""
+            <div style="background:{bg}; border:3px solid {br}; border-radius:12px; padding:1.4rem; box-shadow:5px 5px 0px {br}; margin-top:1rem;">
+                <div style="font-size:0.95rem; font-weight:900; color:#4b5563; text-transform:uppercase; letter-spacing:0.02em;">AI Diagnostic Rating</div>
+                <div style="font-size:3.2rem; font-weight:900; color:{br}; margin-bottom:0.8rem; line-height:1.0;">{rating}</div>
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; margin-bottom:1.2rem;">
+                    <div style="background:#ffffff; border:2.5px solid #000; padding:0.8rem; border-radius:8px; box-shadow:2px 2px 0px #000;">
+                        <div style="font-size:0.75rem; font-weight:800; color:#4b5563;">AI Risk Score</div>
+                        <div style="font-size:1.6rem; font-weight:900; color:#000;">{res['risk_score']}%</div>
+                    </div>
+                    <div style="background:#ffffff; border:2.5px solid #000; padding:0.8rem; border-radius:8px; box-shadow:2px 2px 0px #000;">
+                        <div style="font-size:0.75rem; font-weight:800; color:#4b5563;">Anomaly Area Density</div>
+                        <div style="font-size:1.6rem; font-weight:900; color:#000;">{res['anomaly_pct']}%</div>
+                    </div>
                 </div>
-                <div style="font-size:0.78rem; font-weight:600; color:#374151; margin-top:0.45rem; line-height:1.5;">
-                    <b>Coal Mines Regulations (CMR) 2017 &middot; Regulation 123 &amp; 124:</b><br>
-                    • Continuous strata deformation monitoring is statutory over extracted extraction panels (Goaf).<br>
-                    • <b>Critical Tilt Threshold:</b> Any ground inclination exceeding <b>8.0 mm/m</b> triggers immediate red alert and surface infrastructure evacuation.<br>
-                    • <b>Surface Crack Aperture:</b> Tensile fissure opening &gt; <b>6.0 mm</b> or expansion velocity &gt; <b>0.4 mm/min</b> indicates progressive strata shear rupture.<br>
-                    • <b>Dynamic Tremors:</b> Micro-seismic vibrations &gt; <b>0.25 g</b> indicate strata shearing prior to breach.
-                </div>
+                
+                <div style="font-size:0.95rem; font-weight:900; color:#000;">Detected Classifications:</div>
+                <ul style="margin-top:0.4rem; margin-bottom:0; font-size:0.9rem; font-weight:700; color:#111827;">
+                    {''.join(f'<li>{a}</li>' for a in res['anomalies'])}
+                </ul>
             </div>
-            <div style="background:#ffffff; border:2.5px solid #000; border-radius:12px; padding:1.0rem; box-shadow:3.5px 3.5px 0px #000;">
-                <div style="font-size:0.95rem; font-weight:900; color:#000;">
-                    ⚡ Closed-Loop Feedback &amp; Dynamic Densification
-                </div>
-                <div style="font-size:0.78rem; font-weight:600; color:#374151; margin-top:0.45rem; line-height:1.5;">
-                    <b>Why adaptive closed-loop density scaling?</b><br>
-                    • <b>Blind-Spot Elimination:</b> Single baseline sensors (e.g. 1 per 60m) miss localized tensile shear fissures developing between nodes.<br>
-                    • <b>Feedback Loop Rebalancing:</b> Anomaly detection and risk scoring feed back into zone classification; when risk drops (via backfilling), node density rebalances.<br>
-                    • <b>Lead-Time Multiplication:</b> Dense micro-nodes extend warning lead time from <b>~12 minutes to 60+ minutes</b>, enabling orderly workforce evacuation.
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with tab_audit:
-        with st.container(border=True):
-            st.write("**Ground Scanner Event & Dispatch Audit Log**")
-            logs = scan_data["audit_log"]
-            for l in logs:
-                badge_bg = "#ff4d4d" if l.get("type") == "ACTION" else ("#facc15" if l.get("type") == "MANUAL" else "#e2e8f0")
-                badge_lbl = l.get("type", "INFO")
-                st.markdown(f"""
-                <div style="display:flex; align-items:center; gap:0.6rem; padding:0.35rem 0.6rem; border-bottom:1px solid #e5e7eb; font-size:0.78rem;">
-                    <span style="font-family:'Space Grotesk', monospace; font-weight:800; color:#6b7280;">[{l['time']}]</span>
-                    <span style="background:{badge_bg}; border:1px solid #000; border-radius:4px; padding:0.08rem 0.35rem; font-size:0.65rem; font-weight:900; color:#000;">{badge_lbl}</span>
-                    <span style="font-weight:700; color:#111827;">{l['event']}</span>
-                </div>
-                """, unsafe_allow_html=True)
+            """
+            st.markdown(res_html, unsafe_allow_html=True)
+        else:
+            st.info("Upload an image and run the AI model to see results here.")
 
 
 # -------------------------------------------------------------

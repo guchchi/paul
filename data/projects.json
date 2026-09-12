@@ -1,0 +1,186 @@
+{
+    "PROJ_001": {
+        "project_id": "PROJ_001",
+        "name": "Jharia Block II",
+        "width_m": 1200,
+        "height_m": 1200,
+        "grid_rows": 3,
+        "grid_cols": 3,
+        "zones": [
+            {
+                "zone_id": "A1",
+                "row": 0,
+                "col": 0,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            },
+            {
+                "zone_id": "A2",
+                "row": 0,
+                "col": 1,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            },
+            {
+                "zone_id": "A3",
+                "row": 0,
+                "col": 2,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            },
+            {
+                "zone_id": "B1",
+                "row": 1,
+                "col": 0,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            },
+            {
+                "zone_id": "B2",
+                "row": 1,
+                "col": 1,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            },
+            {
+                "zone_id": "B3",
+                "row": 1,
+                "col": 2,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            },
+            {
+                "zone_id": "C1",
+                "row": 2,
+                "col": 0,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            },
+            {
+                "zone_id": "C2",
+                "row": 2,
+                "col": 1,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            },
+            {
+                "zone_id": "C3",
+                "row": 2,
+                "col": 2,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            }
+        ],
+        "created_at": "2026-09-12"
+    },
+    "PROJ_002": {
+        "project_id": "PROJ_002",
+        "name": "New Coalfield Block",
+        "width_m": 1200,
+        "height_m": 1200,
+        "grid_rows": 3,
+        "grid_cols": 3,
+        "zones": [
+            {
+                "zone_id": "A1",
+                "row": 0,
+                "col": 0,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            },
+            {
+                "zone_id": "A2",
+                "row": 0,
+                "col": 1,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            },
+            {
+                "zone_id": "A3",
+                "row": 0,
+                "col": 2,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            },
+            {
+                "zone_id": "B1",
+                "row": 1,
+                "col": 0,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            },
+            {
+                "zone_id": "B2",
+                "row": 1,
+                "col": 1,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            },
+            {
+                "zone_id": "B3",
+                "row": 1,
+                "col": 2,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            },
+            {
+                "zone_id": "C1",
+                "row": 2,
+                "col": 0,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            },
+            {
+                "zone_id": "C2",
+                "row": 2,
+                "col": 1,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            },
+            {
+                "zone_id": "C3",
+                "row": 2,
+                "col": 2,
+                "status": "UNSCANNED",
+                "risk_score": 0.0,
+                "last_scan": null,
+                "anomalies": []
+            }
+        ],
+        "created_at": "2026-09-12"
+    }
+}
