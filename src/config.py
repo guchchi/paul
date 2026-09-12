@@ -46,12 +46,24 @@ class AppConfig:
     serial_port: str = ""                # e.g., "COM3" for Arduino/Relay
     serial_baud: int = 9600
 
-    # Ground Scanner & Adaptive Mesh Settings
-    danger_risk_threshold: float = 68.0  # DGMS critical danger threshold (%)
-    advisory_risk_threshold: float = 38.0  # DGMS advisory strain threshold (%)
-    max_dynamic_nodes: int = 8           # Maximum auxiliary sensor nodes
+    # Ground Scanner & Adaptive Mesh Settings (Module 4)
+    danger_risk_threshold: float = 68.0    # DGMS critical danger threshold (%)
+    advisory_risk_threshold: float = 38.0  # DGMS moderate strain threshold (%)
+    max_dynamic_nodes: int = 8             # Maximum auxiliary sensor nodes
     auto_deploy_nodes_on_danger: bool = True
     scan_interval_sec: float = 5.0
+    
+    # Geotechnical Sensor Array Thresholds (Tilt / Displacement / Vibration / Crack)
+    tilt_warning_mm_m: float = 4.0         # Advisory tilt limit (mm/m)
+    tilt_critical_mm_m: float = 8.0        # DGMS critical tilt limit (mm/m)
+    displacement_warning_mm: float = 30.0  # Advisory subsidence depth (mm)
+    displacement_critical_mm: float = 80.0 # Critical subsidence depth (mm)
+    vibration_warning_g: float = 0.08      # Micro-seismic tremor warning (g)
+    vibration_critical_g: float = 0.25     # High dynamic tremor rupture threshold (g)
+    crack_warning_mm: float = 2.5          # Tensile fissure crack advisory (mm)
+    crack_critical_mm: float = 6.0         # Severe surface fissure breach (mm)
+    crack_rate_anomaly_mm_min: float = 0.4 # Crack expansion velocity anomaly (mm/min)
 
 # Global active configuration instance
 config = AppConfig()
+

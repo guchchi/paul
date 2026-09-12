@@ -112,7 +112,11 @@ class AlertManager:
                 # B. Voice Announcement
                 if self.enable_voice and tts_engine:
                     try:
-                        msg = f"Warning! {threat.capitalize()} hazard detected! Please inspect camera zone immediately."
+                        custom_msg = alert_item.get("custom_msg")
+                        if custom_msg:
+                            msg = custom_msg
+                        else:
+                            msg = f"Warning! {threat.capitalize()} hazard detected! Please inspect camera zone immediately."
                         tts_engine.say(msg)
                         tts_engine.runAndWait()
                     except Exception as e:
@@ -121,6 +125,20 @@ class AlertManager:
                 self.alert_queue.task_done()
             except Exception as e:
                 time.sleep(0.1)
+
+    def trigger_geotechnical_alarm(self, zone_id: str = "ZONE-A", risk_score: float = 85.0):
+        """Dispatches an urgent audio siren and spoken voice evacuation message for Module 4."""
+        current_time = time.time()
+        if (current_time - self.last_alarm_time) >= 3.0:
+            self.last_alarm_time = current_time
+            try:
+                self.alert_queue.put_nowait({
+                    "type": "subsidence",
+                    "custom_msg": f"Critical strata alert! Danger detected in {zone_id} with {int(risk_score)} percent risk! Evacuate extraction panel immediately.",
+                    "timestamp": current_time
+                })
+            except queue.Full:
+                pass
 
     def _save_incident_snapshot(self, frame: cv2.Mat, threat_type: str, confidence: float):
         """Saves a timestamped snapshot of the incident with visual telemetry stamped."""
