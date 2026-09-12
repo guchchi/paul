@@ -11,10 +11,14 @@
                 "zone_id": "A1",
                 "row": 0,
                 "col": 0,
-                "status": "UNSCANNED",
-                "risk_score": 0.0,
-                "last_scan": null,
-                "anomalies": []
+                "status": "DANGER",
+                "risk_score": 100.0,
+                "last_scan": "2026-09-12 23:52:16",
+                "anomalies": [
+                    "Subsidence Pooling / Sinkhole",
+                    "Linear Fissure",
+                    "Critical Rupture"
+                ]
             },
             {
                 "zone_id": "A2",

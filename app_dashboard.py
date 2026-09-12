@@ -1707,28 +1707,24 @@ def render_mod4_scanner():
                 bg = "#dcfce7"
                 br = "#15803d"
                 
-            res_html = f"""
-            <div style="background:{bg}; border:3px solid {br}; border-radius:12px; padding:1.4rem; box-shadow:5px 5px 0px {br}; margin-top:1rem;">
-                <div style="font-size:0.95rem; font-weight:900; color:#4b5563; text-transform:uppercase; letter-spacing:0.02em;">AI Diagnostic Rating</div>
-                <div style="font-size:3.2rem; font-weight:900; color:{br}; margin-bottom:0.8rem; line-height:1.0;">{rating}</div>
-                
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; margin-bottom:1.2rem;">
-                    <div style="background:#ffffff; border:2.5px solid #000; padding:0.8rem; border-radius:8px; box-shadow:2px 2px 0px #000;">
-                        <div style="font-size:0.75rem; font-weight:800; color:#4b5563;">AI Risk Score</div>
-                        <div style="font-size:1.6rem; font-weight:900; color:#000;">{res['risk_score']}%</div>
-                    </div>
-                    <div style="background:#ffffff; border:2.5px solid #000; padding:0.8rem; border-radius:8px; box-shadow:2px 2px 0px #000;">
-                        <div style="font-size:0.75rem; font-weight:800; color:#4b5563;">Anomaly Area Density</div>
-                        <div style="font-size:1.6rem; font-weight:900; color:#000;">{res['anomaly_pct']}%</div>
-                    </div>
-                </div>
-                
-                <div style="font-size:0.95rem; font-weight:900; color:#000;">Detected Classifications:</div>
-                <ul style="margin-top:0.4rem; margin-bottom:0; font-size:0.9rem; font-weight:700; color:#111827;">
-                    {''.join(f'<li>{a}</li>' for a in res['anomalies'])}
-                </ul>
-            </div>
-            """
+            res_html = f"""<div style="background:{bg}; border:3px solid {br}; border-radius:12px; padding:1.4rem; box-shadow:5px 5px 0px {br}; margin-top:1rem;">
+<div style="font-size:0.95rem; font-weight:900; color:#4b5563; text-transform:uppercase; letter-spacing:0.02em;">AI Diagnostic Rating</div>
+<div style="font-size:3.2rem; font-weight:900; color:{br}; margin-bottom:0.8rem; line-height:1.0;">{rating}</div>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; margin-bottom:1.2rem;">
+<div style="background:#ffffff; border:2.5px solid #000; padding:0.8rem; border-radius:8px; box-shadow:2px 2px 0px #000;">
+<div style="font-size:0.75rem; font-weight:800; color:#4b5563;">AI Risk Score</div>
+<div style="font-size:1.6rem; font-weight:900; color:#000;">{res['risk_score']}%</div>
+</div>
+<div style="background:#ffffff; border:2.5px solid #000; padding:0.8rem; border-radius:8px; box-shadow:2px 2px 0px #000;">
+<div style="font-size:0.75rem; font-weight:800; color:#4b5563;">Anomaly Area Density</div>
+<div style="font-size:1.6rem; font-weight:900; color:#000;">{res['anomaly_pct']}%</div>
+</div>
+</div>
+<div style="font-size:0.95rem; font-weight:900; color:#000;">Detected Classifications:</div>
+<ul style="margin-top:0.4rem; margin-bottom:0; font-size:0.9rem; font-weight:700; color:#111827;">
+{''.join(f'<li>{a}</li>' for a in res['anomalies'])}
+</ul>
+</div>"""
             st.markdown(res_html, unsafe_allow_html=True)
         else:
             st.info("Upload an image and run the AI model to see results here.")
