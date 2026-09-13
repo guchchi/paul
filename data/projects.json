@@ -1,102 +1,6 @@
 {
     "PROJ_001": {
         "project_id": "PROJ_001",
-        "name": "Jharia Block II",
-        "width_m": 1200,
-        "height_m": 1200,
-        "grid_rows": 3,
-        "grid_cols": 3,
-        "zones": [
-            {
-                "zone_id": "A1",
-                "row": 0,
-                "col": 0,
-                "status": "DANGER",
-                "risk_score": 100.0,
-                "last_scan": "2026-09-12 23:52:16",
-                "anomalies": [
-                    "Subsidence Pooling / Sinkhole",
-                    "Linear Fissure",
-                    "Critical Rupture"
-                ]
-            },
-            {
-                "zone_id": "A2",
-                "row": 0,
-                "col": 1,
-                "status": "UNSCANNED",
-                "risk_score": 0.0,
-                "last_scan": null,
-                "anomalies": []
-            },
-            {
-                "zone_id": "A3",
-                "row": 0,
-                "col": 2,
-                "status": "UNSCANNED",
-                "risk_score": 0.0,
-                "last_scan": null,
-                "anomalies": []
-            },
-            {
-                "zone_id": "B1",
-                "row": 1,
-                "col": 0,
-                "status": "UNSCANNED",
-                "risk_score": 0.0,
-                "last_scan": null,
-                "anomalies": []
-            },
-            {
-                "zone_id": "B2",
-                "row": 1,
-                "col": 1,
-                "status": "UNSCANNED",
-                "risk_score": 0.0,
-                "last_scan": null,
-                "anomalies": []
-            },
-            {
-                "zone_id": "B3",
-                "row": 1,
-                "col": 2,
-                "status": "UNSCANNED",
-                "risk_score": 0.0,
-                "last_scan": null,
-                "anomalies": []
-            },
-            {
-                "zone_id": "C1",
-                "row": 2,
-                "col": 0,
-                "status": "UNSCANNED",
-                "risk_score": 0.0,
-                "last_scan": null,
-                "anomalies": []
-            },
-            {
-                "zone_id": "C2",
-                "row": 2,
-                "col": 1,
-                "status": "UNSCANNED",
-                "risk_score": 0.0,
-                "last_scan": null,
-                "anomalies": []
-            },
-            {
-                "zone_id": "C3",
-                "row": 2,
-                "col": 2,
-                "status": "UNSCANNED",
-                "risk_score": 0.0,
-                "last_scan": null,
-                "anomalies": []
-            }
-        ],
-        "created_at": "2026-09-12"
-    },
-    "PROJ_002": {
-        "project_id": "PROJ_002",
         "name": "New Coalfield Block",
         "width_m": 1200,
         "height_m": 1200,
@@ -107,55 +11,99 @@
                 "zone_id": "A1",
                 "row": 0,
                 "col": 0,
-                "status": "UNSCANNED",
-                "risk_score": 0.0,
-                "last_scan": null,
-                "anomalies": []
+                "status": "HIGH RISK",
+                "risk_score": 49.2,
+                "last_scan": "2026-09-13 19:01:22",
+                "anomalies": [
+                    "Crack/Fissure structures detected",
+                    "Abnormal texture/surface variation detected",
+                    "Anomaly persists across multiple scans"
+                ],
+                "confidence": 99.9,
+                "quality": "GOOD",
+                "recommended_action": "Verify with nearby ground sensors and inspect zone",
+                "sensor_verification_required": true
             },
             {
                 "zone_id": "A2",
                 "row": 0,
                 "col": 1,
-                "status": "UNSCANNED",
-                "risk_score": 0.0,
-                "last_scan": null,
-                "anomalies": []
+                "status": "CRITICAL VISUAL ALERT",
+                "risk_score": 90.2,
+                "last_scan": "2026-09-13 19:19:36",
+                "anomalies": [
+                    "Crack/Fissure structures detected",
+                    "Abnormal texture/surface variation detected",
+                    "Anomaly persists across multiple scans"
+                ],
+                "confidence": 99.9,
+                "quality": "GOOD",
+                "recommended_action": "Immediate ground-sensor verification and professional inspection required",
+                "sensor_verification_required": true
             },
             {
                 "zone_id": "A3",
                 "row": 0,
                 "col": 2,
-                "status": "UNSCANNED",
-                "risk_score": 0.0,
-                "last_scan": null,
-                "anomalies": []
+                "status": "HIGH RISK",
+                "risk_score": 65.5,
+                "last_scan": "2026-09-13 19:03:20",
+                "anomalies": [
+                    "Crack/Fissure structures detected",
+                    "Abnormal texture/surface variation detected"
+                ],
+                "confidence": 99.9,
+                "quality": "GOOD",
+                "recommended_action": "Verify with nearby ground sensors and inspect zone",
+                "sensor_verification_required": true
             },
             {
                 "zone_id": "B1",
                 "row": 1,
                 "col": 0,
-                "status": "UNSCANNED",
-                "risk_score": 0.0,
-                "last_scan": null,
-                "anomalies": []
+                "status": "CRITICAL VISUAL ALERT",
+                "risk_score": 90.4,
+                "last_scan": "2026-09-13 19:07:19",
+                "anomalies": [
+                    "Crack/Fissure structures detected",
+                    "Abnormal texture/surface variation detected"
+                ],
+                "confidence": 99.9,
+                "quality": "GOOD",
+                "recommended_action": "Immediate ground-sensor verification and professional inspection required",
+                "sensor_verification_required": true
             },
             {
                 "zone_id": "B2",
                 "row": 1,
                 "col": 1,
-                "status": "UNSCANNED",
-                "risk_score": 0.0,
-                "last_scan": null,
-                "anomalies": []
+                "status": "HIGH RISK",
+                "risk_score": 71.5,
+                "last_scan": "2026-09-13 19:13:20",
+                "anomalies": [
+                    "Crack/Fissure structures detected",
+                    "Abnormal texture/surface variation detected"
+                ],
+                "confidence": 99.9,
+                "quality": "GOOD",
+                "recommended_action": "Verify with nearby ground sensors and inspect zone",
+                "sensor_verification_required": true
             },
             {
                 "zone_id": "B3",
                 "row": 1,
                 "col": 2,
-                "status": "UNSCANNED",
-                "risk_score": 0.0,
-                "last_scan": null,
-                "anomalies": []
+                "status": "SAFE",
+                "risk_score": 44.6,
+                "last_scan": "2026-09-13 19:17:52",
+                "anomalies": [
+                    "Crack/Fissure structures detected",
+                    "Abnormal texture/surface variation detected"
+                ],
+                "confidence": 99.9,
+                "quality": "GOOD",
+                "recommended_action": "Continue routine monitoring",
+                "sensor_verification_required": false
             },
             {
                 "zone_id": "C1",

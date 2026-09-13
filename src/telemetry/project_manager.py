@@ -77,13 +77,17 @@ class ProjectManager:
     def get_project(self, project_id: str) -> dict:
         return self.projects.get(project_id, None)
 
-    def update_zone_status(self, project_id: str, zone_id: str, status: str, score: float, anomalies: List[str]):
+    def update_zone_status(self, project_id: str, zone_id: str, scan_result: Dict[str, Any]):
         if project_id in self.projects:
             for zone in self.projects[project_id]["zones"]:
                 if zone["zone_id"] == zone_id:
-                    zone["status"] = status
-                    zone["risk_score"] = score
-                    zone["anomalies"] = anomalies
+                    zone["status"] = scan_result.get("risk_level", "UNKNOWN")
+                    zone["risk_score"] = scan_result.get("visual_evidence_score", 0.0) * 100.0
+                    zone["confidence"] = scan_result.get("confidence", 0.0)
+                    zone["anomalies"] = scan_result.get("evidence", [])
+                    zone["quality"] = scan_result.get("image_quality", "UNKNOWN")
+                    zone["recommended_action"] = scan_result.get("recommended_action", "")
+                    zone["sensor_verification_required"] = scan_result.get("sensor_verification_required", False)
                     import datetime
                     zone["last_scan"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     break

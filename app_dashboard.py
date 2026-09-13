@@ -27,7 +27,7 @@ from src.telemetry.rover_telemetry import rover_telemetry
 from src.telemetry.subsidence_telemetry import subsidence_mesh
 from src.telemetry.ground_scanner import ground_scanner
 from src.telemetry.project_manager import project_manager
-from src.detection.zone_classifier import zone_classifier
+from src.detection.vision_pipeline.pipeline import vision_pipeline
 
 # -------------------------------------------------------------
 # Streamlit Page Setup
@@ -1657,77 +1657,179 @@ def render_mod4_scanner():
     proj = project_manager.get_project(proj_id)
     zone = next((z for z in proj['zones'] if z['zone_id'] == zone_id), None)
     
-    st.markdown(f"### AI Vision Scanner &middot; Zone {zone_id}")
-    st.caption("Upload High-Resolution Optical/Satellite imagery for AI-driven anomaly and fissure detection.")
+    st.markdown(f"### WIDE-AREA VISUAL SCREENING &middot; Zone {zone_id}")
+    st.caption("AI-assisted visual screening to identify potential surface anomalies and prioritize ground-sensor verification.")
     
-    col1, col2 = st.columns([1, 1])
+    col_demo, col_src = st.columns([1, 1])
+    with col_demo:
+        demo_mode = st.selectbox("Simulation / Demo Mode", ["Disabled (Real Upload)", "Scenario 1: NORMAL", "Scenario 2: DEVELOPING ANOMALY", "Scenario 3: STRONG VISUAL ANOMALY", "Scenario 4: MULTI-SOURCE CONFIRMATION"])
+    with col_src:
+        image_source = st.selectbox("Image Source Type", ["Satellite / Aerial", "Drone / Orthographic", "Fixed Ground Camera", "Temporal (Before/After)"])
+
+    if demo_mode != "Disabled (Real Upload)":
+        st.warning("⚠️ SIMULATION DATA — NOT LIVE MINE DATA", icon="⚠️")
+
+    st.write("---")
+    st.write("**1. Image Input & Processing**")
     
-    with col1:
-        st.write("**1. Upload Zone Imagery**")
-        uploaded_file = st.file_uploader("Upload Drone/Camera/Satellite Image (JPG/PNG)", type=["jpg", "jpeg", "png"])
+    uploaded_file = None
+    ref_file = None
+    
+    if image_source == "Temporal (Before/After)":
+        ref_file = st.file_uploader("Upload Reference/Before Image", type=["jpg", "jpeg", "png"])
         
-        if uploaded_file is not None:
-            image_bytes = uploaded_file.getvalue()
-            st.image(image_bytes, caption="Original Uploaded Feed", use_container_width=True)
-            
-            if st.button("🧠 Run AI Analysis Model", type="primary", use_container_width=True):
-                with st.spinner("AI Model analyzing structural integrity and edge density..."):
-                    import time
-                    time.sleep(1.5) # Simulate heavy processing
+    uploaded_file = st.file_uploader("Upload Current/Target Image", type=["jpg", "jpeg", "png"])
+    
+    if demo_mode != "Disabled (Real Upload)":
+        # Dummy placeholder logic for demo simulation
+        dummy_img = np.ones((800, 800, 3), dtype=np.uint8) * 255
+        if "DEVELOPING" in demo_mode:
+            cv2.line(dummy_img, (100, 100), (400, 600), (0,0,0), 2)
+        elif "STRONG" in demo_mode or "MULTI-SOURCE" in demo_mode:
+            for i in range(10):
+                cv2.line(dummy_img, (i*50, 100), (i*80, 700), (0,0,0), 3)
+        is_success, buffer = cv2.imencode(".jpg", dummy_img)
+        image_bytes = buffer.tobytes()
+        ref_bytes = buffer.tobytes() if image_source == "Temporal (Before/After)" else None
+    else:
+        image_bytes = uploaded_file.getvalue() if uploaded_file else None
+        ref_bytes = ref_file.getvalue() if ref_file else None
+
+    # Check if results exist for this zone
+    res = st.session_state.get(f"scan_res_{zone_id}")
+
+    if image_bytes is not None:
+        if st.button("🧠 Execute Modular Vision Pipeline", type="primary", use_container_width=True):
+            with st.spinner("Pipeline running (Quality Validation ➔ Segmentation ➔ Anomaly ➔ Fusion)..."):
+                import time
+                time.sleep(1.5)
+                try:
+                    results = vision_pipeline.process(zone_id, image_source, image_bytes, ref_bytes)
+                    # Override scores for Demo Mode explicitly
+                    if demo_mode == "Scenario 1: NORMAL":
+                        results["risk_level"] = "SAFE"
+                        results["confidence"] = 92.5
+                        results["visual_evidence_score"] = 0.05
+                        results["evidence"] = ["Visual indicators within normal parameters"]
+                        results["recommended_action"] = "Continue routine monitoring"
+                        results["sensor_verification_required"] = False
+                        results["crack_score"] = 0.0
+                        results["anomaly_score"] = 0.05
+                        results["hotspots"] = []
+                    elif demo_mode == "Scenario 2: DEVELOPING ANOMALY":
+                        results["risk_level"] = "MODERATE"
+                        results["confidence"] = 81.0
+                        results["visual_evidence_score"] = 0.25
+                        results["evidence"] = ["Minor Crack/Fissure structures detected"]
+                        results["recommended_action"] = "Increase monitoring frequency and rescan"
+                        results["sensor_verification_required"] = False
+                    elif demo_mode == "Scenario 3: STRONG VISUAL ANOMALY":
+                        results["risk_level"] = "HIGH RISK"
+                        results["confidence"] = 89.5
+                        results["visual_evidence_score"] = 0.65
+                        results["evidence"] = ["Severe Crack/Fissure structures detected", "Anomaly persists across multiple scans"]
+                        results["recommended_action"] = "Verify with nearby ground sensors and inspect zone"
+                        results["sensor_verification_required"] = True
+                    elif demo_mode == "Scenario 4: MULTI-SOURCE CONFIRMATION":
+                        results["risk_level"] = "CRITICAL VISUAL ALERT"
+                        results["confidence"] = 95.0
+                        results["visual_evidence_score"] = 0.88
+                        results["evidence"] = ["Severe Crack structures detected", "Significant temporal structural change detected", "Anomaly persists across multiple scans", "Ground sensors confirm movement"]
+                        results["recommended_action"] = "Immediate ground-sensor verification and professional inspection required"
+                        results["sensor_verification_required"] = True
                     
-                    try:
-                        results = zone_classifier.analyze_image(image_bytes)
-                        st.session_state[f"scan_res_{zone_id}"] = results
-                        project_manager.update_zone_status(
-                            proj_id, zone_id, 
-                            results["rating"], 
-                            results["risk_score"], 
-                            results["anomalies"]
-                        )
-                        st.toast("✅ AI Analysis Complete!")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Image Processing Error: {e}")
-                        
-    with col2:
-        st.write("**2. AI Analysis Results**")
-        res = st.session_state.get(f"scan_res_{zone_id}")
+                    st.session_state[f"scan_res_{zone_id}"] = results
+                    project_manager.update_zone_status(proj_id, zone_id, results)
+                    st.toast("✅ Vision Pipeline Complete!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Image Processing Error: {e}")
+
+    # Results Section
+    if res:
+        st.write("---")
+        st.write("**2. Pipeline Results**")
+        st.caption(f"MODEL BACKEND: {res['model_backend']}")
         
-        if res:
-            st.image(res["annotated_image_bytes"], caption="AI Annotated Feed (Fissure Tracking)", use_container_width=True)
+        # Display layout for results: Images on left, Analysis on right
+        res_col1, res_col2 = st.columns([1.5, 1])
+        
+        with res_col1:
+            tabs = ["📸 Original", "🎯 AI Annotated"]
+            if res.get("heatmap_bytes"):
+                tabs.append("🔥 Heatmap")
+                
+            tab_objs = st.tabs(tabs)
             
-            rating = res["rating"]
-            if rating == 'DANGER':
+            with tab_objs[0]:
+                if image_bytes:
+                    st.image(image_bytes, caption="Original Uploaded Feed", use_container_width=True)
+            with tab_objs[1]:
+                st.image(res["annotated_image_bytes"], caption="AI Annotated Feed (Hotspot Extraction)", use_container_width=True)
+            if res.get("heatmap_bytes"):
+                with tab_objs[2]:
+                    st.image(res["heatmap_bytes"], caption="Anomaly Heatmap", use_container_width=True)
+                    
+        with res_col2:
+            rating = res["risk_level"]
+            if 'CRITICAL' in rating:
                 bg = "#fecaca"
                 br = "#b91c1c"
-            elif rating == 'MODERATE':
+            elif 'HIGH' in rating:
+                bg = "#fecaca"
+                br = "#dc2626"
+            elif 'MODERATE' in rating:
                 bg = "#fef3c7"
                 br = "#d97706"
+            elif 'LOW' in rating:
+                bg = "#e5e7eb"
+                br = "#4b5563"
             else:
                 bg = "#dcfce7"
                 br = "#15803d"
                 
-            res_html = f"""<div style="background:{bg}; border:3px solid {br}; border-radius:12px; padding:1.4rem; box-shadow:5px 5px 0px {br}; margin-top:1rem;">
-<div style="font-size:0.95rem; font-weight:900; color:#4b5563; text-transform:uppercase; letter-spacing:0.02em;">AI Diagnostic Rating</div>
-<div style="font-size:3.2rem; font-weight:900; color:{br}; margin-bottom:0.8rem; line-height:1.0;">{rating}</div>
+            res_html = f"""<div style="background:{bg}; border:3px solid {br}; border-radius:12px; padding:1.4rem; box-shadow:5px 5px 0px {br}; margin-bottom:1rem;">
+<div style="font-size:0.95rem; font-weight:900; color:#4b5563; text-transform:uppercase; letter-spacing:0.02em;">Risk Classification</div>
+<div style="font-size:2.4rem; font-weight:900; color:{br}; margin-bottom:0.4rem; line-height:1.1;">{rating}</div>
+<div style="font-size:1.1rem; font-weight:700; color:#000; margin-bottom:1.2rem;">Confidence: {res['confidence']}%</div>
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; margin-bottom:1.2rem;">
 <div style="background:#ffffff; border:2.5px solid #000; padding:0.8rem; border-radius:8px; box-shadow:2px 2px 0px #000;">
-<div style="font-size:0.75rem; font-weight:800; color:#4b5563;">AI Risk Score</div>
-<div style="font-size:1.6rem; font-weight:900; color:#000;">{res['risk_score']}%</div>
+<div style="font-size:0.75rem; font-weight:800; color:#4b5563;">Visual Evidence</div>
+<div style="font-size:1.6rem; font-weight:900; color:#000;">{round(res['visual_evidence_score'] * 100, 1)}%</div>
 </div>
 <div style="background:#ffffff; border:2.5px solid #000; padding:0.8rem; border-radius:8px; box-shadow:2px 2px 0px #000;">
-<div style="font-size:0.75rem; font-weight:800; color:#4b5563;">Anomaly Area Density</div>
-<div style="font-size:1.6rem; font-weight:900; color:#000;">{res['anomaly_pct']}%</div>
+<div style="font-size:0.75rem; font-weight:800; color:#4b5563;">Image Quality</div>
+<div style="font-size:1.1rem; font-weight:900; color:#000;">{res['image_quality']}</div>
 </div>
 </div>
-<div style="font-size:0.95rem; font-weight:900; color:#000;">Detected Classifications:</div>
+<div style="background:#ffffff; border:2.5px solid #000; padding:0.8rem; border-radius:8px; box-shadow:2px 2px 0px #000; margin-bottom:1.2rem;">
+<div style="font-size:0.85rem; font-weight:800; color:#4b5563;">RECOMMENDED ACTION</div>
+<div style="font-size:1.0rem; font-weight:900; color:{br};">{res['recommended_action']}</div>
+</div>
+<div style="font-size:0.95rem; font-weight:900; color:#000;">Visual Evidence Log:</div>
 <ul style="margin-top:0.4rem; margin-bottom:0; font-size:0.9rem; font-weight:700; color:#111827;">
-{''.join(f'<li>{a}</li>' for a in res['anomalies'])}
+{''.join(f'<li>{a}</li>' for a in res['evidence'])}
 </ul>
 </div>"""
             st.markdown(res_html, unsafe_allow_html=True)
-        else:
-            st.info("Upload an image and run the AI model to see results here.")
+            
+            if res['sensor_verification_required']:
+                st.warning("⚠️ VISUAL ANOMALY DETECTED — SENSOR VERIFICATION REQUIRED", icon="🚨")
+                st.info("The visual screening module has identified a potential hazard. Immediate correlation with localized ground sensors (Inclinometers/Extensometers) is recommended.")
+                
+            st.caption("Validation metrics unavailable — prototype mode")
+            
+            if len(res['hotspots']) > 0:
+                st.write("---")
+                st.write("#### Detected Hotspots")
+                for i, hs in enumerate(res['hotspots']):
+                    st.write(f"**Hotspot {i+1}**: {hs['type']} | Severity: {hs['severity']} | Loc: {hs['location']}")
+                    
+    elif image_bytes is not None:
+        # If image is uploaded but pipeline not run yet, just show the image
+        st.image(image_bytes, caption="Original Uploaded Feed (Awaiting Processing)", use_container_width=True)
+    else:
+        st.info("Upload imagery and execute the pipeline to view screening results.")
 
 
 # -------------------------------------------------------------
